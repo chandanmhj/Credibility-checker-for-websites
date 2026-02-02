@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Credibility Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+        
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .input-section {
+            text-align: center;
+        }
+        
+        .input-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 18px 25px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .check-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .check-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-section {
+            display: none;
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        
+        .checks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .check-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .check-card.good { border-left-color: #4CAF50; }
+        .check-card.fair { border-left-color: #FFC107; }
+        .check-card.poor { border-left-color: #F44336; }
+        
+        .check-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .check-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .check-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .status-good { background: #d4edda; color: #155724; }
+        .status-fair { background: #fff3cd; color: #856404; }
+        .status-poor { background: #f8d7da; color: #721c24; }
+        
+        .check-score {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .check-message {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .details-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .details-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .details-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .details-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        
+        .details-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .details-list li.good { color: #4CAF50; }
+        .details-list li.warning { color: #FF9800; }
+        .details-list li.bad { color: #F44336; }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        
+        .contact-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .info-card {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+        
+        .risk-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+        
+        @media (max-width: 768px) {
+            .main-card {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .checks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Website Credibility Checker</h1>
+            <p>Check if a website is trustworthy before you visit</p>
+        </header>
+        
+        <div class="main-card">
+            <div class="input-section">
+                <h2>Enter Website URL</h2>
+                <input type="text" class="url-input" placeholder="https://example.com" id="urlInput">
+                <button class="check-btn" id="checkBtn">Check Credibility</button>
+                
+                <div class="error-message" id="errorMessage"></div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing website...</p>
+                </div>
+                
+                <div class="result-section" id="resultSection">
+                    <div class="score-display">
+                        <div class="score-circle">
+                            <div class="score-value" id="scoreValue">0</div>
+                        </div>
+                        <h3 id="summaryText">No analysis yet</h3>
+                        <p id="analyzedUrl"></p>
+                    </div>
+                    
+                    <h3>Detailed Analysis</h3>
+                    <div class="checks-grid" id="checksGrid">
+                        <!-- Checks will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🔒 HTTPS Security</h3>
+                <p>Checks if the website uses secure encryption</p>
+            </div>
+            <div class="info-card">
+                <h3>📞 Contact Info</h3>
+                <p>Looks for email, phone, or address</p>
+            </div>
+            <div class="info-card">
+                <h3>📝 Content Quality</h3>
+                <p>Analyzes content length and quality</p>
+            </div>
+            <div class="info-card">
+                <h3>⚠️ Scam Detection</h3>
+                <p>Detects common suspicious patterns</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Website Credibility Checker • Detailed Analysis Version</p>
+            <p><small>Note: This tool provides estimates only. Always use caution online.</small></p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlInput = document.getElementById("urlInput");
+            const checkBtn = document.getElementById("checkBtn");
+            const loading = document.getElementById("loading");
+            const resultSection = document.getElementById("resultSection");
+            const scoreValue = document.getElementById("scoreValue");
+            const summaryText = document.getElementById("summaryText");
+            const analyzedUrl = document.getElementById("analyzedUrl");
+            const checksGrid = document.getElementById("checksGrid");
+            const errorMessage = document.getElementById("errorMessage");
+            
+            checkBtn.addEventListener("click", checkWebsite);
+            urlInput.addEventListener("keypress", function(e) {
+                if (e.key === "Enter") checkWebsite();
+            });
+            
+            async function checkWebsite() {
+                let url = urlInput.value.trim();
+                if (!url) {
+                    showError("Please enter a website URL");
+                    return;
+                }
+                
+                // Add https:// if not present
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "https://" + url;
+                }
+                
+                // Show loading, hide results and errors
+                loading.style.display = "block";
+                resultSection.style.display = "none";
+                errorMessage.style.display = "none";
+                checkBtn.disabled = true;
+                
+                try {
+                    const response = await fetch("/check", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ url: url })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+                    
+                    displayResults(data);
+                    
+                } catch (error) {
+                    showError("Network error: " + error.message);
+                } finally {
+                    loading.style.display = "none";
+                    checkBtn.disabled = false;
+                }
+            }
+            
+            function displayResults(data) {
+                // Update score
+                const score = data.trust_score || 0;
+                scoreValue.textContent = score;
+                
+                // Set score color
+                let scoreColor;
+                if (score >= 80) scoreColor = "#4CAF50";
+                else if (score >= 60) scoreColor = "#FFC107";
+                else if (score >= 40) scoreColor = "#FF9800";
+                else scoreColor = "#F44336";
+                
+                scoreValue.style.color = scoreColor;
+                
+                // Update summary and URL
+                summaryText.textContent = data.summary || "Analysis complete";
+                analyzedUrl.textContent = "Analyzed: " + data.url;
+                
+                // Update checks
+                if (data.checks) {
+                    checksGrid.innerHTML = "";
+                    
+                    // HTTPS Check
+                    if (data.checks.https) {
+                        const httpsCard = createCheckCard('https', data.checks.https);
+                        checksGrid.appendChild(httpsCard);
+                    }
+                    
+                    // Contact Info Check
+                    if (data.checks.contact_info) {
+                        const contactCard = createCheckCard('contact_info', data.checks.contact_info);
+                        checksGrid.appendChild(contactCard);
+                    }
+                    
+                    // Content Quality Check
+                    if (data.checks.content_quality) {
+                        const contentCard = createCheckCard('content_quality', data.checks.content_quality);
+                        checksGrid.appendChild(contentCard);
+                    }
+                    
+                    // Suspicious Patterns Check
+                    if (data.checks.suspicious_patterns) {
+                        const suspiciousCard = createCheckCard('suspicious_patterns', data.checks.suspicious_patterns);
+                        checksGrid.appendChild(suspiciousCard);
+                    }
+                }
+                
+                // Show results
+                resultSection.style.display = "block";
+                
+                // Scroll to results
+                resultSection.scrollIntoView({ behavior: "smooth" });
+            }
+            
+            function createCheckCard(checkName, checkData) {
+                const card = document.createElement("div");
+                const status = checkData.status || "Unknown";
+                card.className = `check-card ${status.toLowerCase()}`;
+                
+                // Title mapping
+                const titles = {
+                    'https': '🔒 HTTPS Security',
+                    'contact_info': '📞 Contact Information',
+                    'content_quality': '📝 Content Quality',
+                    'suspicious_patterns': '⚠️ Suspicious Patterns'
+                };
+                
+                const title = titles[checkName] || checkName.replace('_', ' ').toUpperCase();
+                
+                let statusClass = "status-fair";
+                if (status.toLowerCase().includes("good") || status.toLowerCase().includes("secure") || status.toLowerCase().includes("safe")) {
+                    statusClass = "status-good";
+                } else if (status.toLowerCase().includes("poor") || status.toLowerCase().includes("risk")) {
+                    statusClass = "status-poor";
+                }
+                
+                // Build card content
+                let cardHTML = `
+                    <div class="check-header">
+                        <div class="check-title">${title}</div>
+                        <span class="check-status ${statusClass}">${status}</span>
+                    </div>
+                    <div class="check-score">Score: ${checkData.score} points</div>
+                    <div class="check-message">${checkData.message || ""}</div>
+                `;
+                
+                // Add details section if available - FIXED: Check if details exists and is an array
+                if (checkData.details && Array.isArray(checkData.details) && checkData.details.length > 0) {
+                    cardHTML += `
+                        <div class="details-section">
+                            <div class="details-title">Detailed Analysis:</div>
+                            <ul class="details-list">
+                    `;
+                    
+                    // Add each detail item
+                    checkData.details.forEach(detail => {
+                        if (typeof detail === 'string') {
+                            let liClass = '';
+                            if (detail.includes('✅') || detail.includes('Good') || detail.includes('Proper') || detail.includes('Substantial')) {
+                                liClass = 'good';
+                            } else if (detail.includes('⚠️') || detail.includes('Warning') || detail.includes('Limited') || detail.includes('Some')) {
+                                liClass = 'warning';
+                            } else if (detail.includes('❌') || detail.includes('Risk') || detail.includes('No ') || detail.includes('Poor') || detail.includes('Very little')) {
+                                liClass = 'bad';
+                            }
+                            
+                            cardHTML += `<li class="${liClass}">${detail}</li>`;
+                        }
+                    });
+                    
+                    // Add specific contact info if available
+                    if (checkName === 'contact_info') {
+                        if (checkData.emails_found && Array.isArray(checkData.emails_found) && checkData.emails_found.length > 0) {
+                            cardHTML += `<li class="good"><strong>Emails Found:</strong> ${checkData.emails_found.join(', ')}</li>`;
+                        }
+                        if (checkData.phones_found && Array.isArray(checkData.phones_found) && checkData.phones_found.length > 0) {
+                            cardHTML += `<li class="good"><strong>Phones Found:</strong> ${checkData.phones_found.join(', ')}</li>`;
+                        }
+                    }
+                    
+                    // Add risk level for suspicious patterns
+                    if (checkName === 'suspicious_patterns' && checkData.risk_level) {
+                        let riskClass = '';
+                        if (checkData.risk_level === 'Low') riskClass = 'risk-low';
+                        else if (checkData.risk_level === 'Medium') riskClass = 'risk-medium';
+                        else riskClass = 'risk-high';
+                        
+                        cardHTML += `<li><strong>Overall Risk Level:</strong> <span class="risk-badge ${riskClass}">${checkData.risk_level}</span></li>`;
+                    }
+                    
+                    cardHTML += `
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    // If no details array, create basic details
+                    cardHTML += `
+                        <div class="details-section">
+                            <div class="details-title">Analysis:</div>
+                            <ul class="details-list">
+                                <li>Status: ${status}</li>
+                                <li>Score: ${checkData.score} points</li>
+                                <li>${checkData.message || "No detailed analysis available"}</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                card.innerHTML = cardHTML;
+                return card;
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>
